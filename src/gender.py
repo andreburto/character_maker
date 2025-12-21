@@ -11,9 +11,9 @@ class GenderFemale(dspy.Signature):
     is_female: bool = dspy.OutputField()
 
 
-def get_gender_of_name(name):
-    male_prompt = f"Is the name {name} typically a male name?"
-    female_prompt = f"Is the name {name} typically a female name?"
+def get_gender_of_name(name, country):
+    male_prompt = f"Is the name {name} typically a male name in {country}?"
+    female_prompt = f"Is the name {name} typically a female name in {country}?"
 
     gender_male = dspy.Predict(GenderMale)
     male_response = gender_male(name=male_prompt, cache=False)

@@ -21,8 +21,12 @@ It's the biggest model my potato computer will run, but the purpose of this is t
 4. Add a web form to make creating characters easier.
 5. Replace the `get_country_choice` with a random picker from a list, but have an LLM generate the list.
 6. Turn this into a serverless app.
+7. Add documentation.
+8. Add tests.
 
 ## Update Log
+
+**2025-12-22:** Started working on the workflow, so users can start the character creation with a prompt.
 
 **2025-12-17:** Added gender feature and split functions up by their function.
 
