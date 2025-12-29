@@ -15,16 +15,17 @@ It's the biggest model my potato computer will run, but the purpose of this is t
 
 ## To Do
 
-1. Reinstate `llm_debug` to show prompts when debugging.
-2. Add more character attributes to the workflow.
-3. Use sqlite to store characters.
-4. Add a web form to make creating characters easier.
-5. Replace the `get_country_choice` with a random picker from a list, but have an LLM generate the list.
-6. Turn this into a serverless app.
-7. Add documentation.
-8. Add tests.
+1. Add more character attributes to the workflow.
+2. Use sqlite to store characters.
+3. Add a web form to make creating characters easier.
+4. Replace the `get_country_choice` with a random picker from a list, but have an LLM generate the list.
+5. Turn this into a serverless app.
+6. Add documentation.
+7. Add tests.
 
 ## Update Log
+
+**2025-12-28:** Trying to build a chain of thought, but Llama still gets chatty with responses.
 
 **2025-12-22:** Started working on the workflow, so users can start the character creation with a prompt.
 
