@@ -5,10 +5,10 @@ from utils import get_logger
 logger = get_logger(__file__)
 
 QUESTIONS = {
-    "name": "Do you know the name of the character?",
-    "country": "Do you know the country the character is from?",
-    "gender": "Do you know the character's gender?",
-    "profession": "Do you know the character's profession?",
+    "name": "Is there a name in the following text that could belong to a person or story character?",
+    "country": "Is there a country, region, or a general location mentioned in the following text?",
+    "gender": "Is there any indication of gender or sex of a person or character in the following text?",
+    "profession": "Is there a profession or job title mentioned in the following text?",
 }
 
 
@@ -31,9 +31,9 @@ def is_information_a_sentence(info_text):
     return response.is_sentence
 
 
-def extract_most_important_information_from_sentence(info_text, question):
+def extract_most_important_information_from_sentence(prompt_text, character_detail):
     prompt = (
-        f"Given the information: \"{info_text}\", extract the most important information that answers the question: \"{question}\""
+        f"Given the information: \"{prompt_text}\", is there a {character_detail} provided?"
         " Provide a concise answer with as few words as possible."
         " Please respond with only the answer, without any additional explanation or context, in as few words as possible.")
     info_extractor = dspy.Predict("text: str -> answer: str", temperature=0.0)
@@ -41,33 +41,31 @@ def extract_most_important_information_from_sentence(info_text, question):
     return response.answer
 
 
-def check_character_prompt_trait(prompt_text, aspect_question):
-        first_prompt = (
-            f"Given the prompt: \"{prompt_text}\" can you answer the question: \"{aspect_question}\"?"
-            f" Don't include any guesses, supposition or inference beyond what is provided in the prompt about the {aspect_question}."
-            " If the prompt does not provide enough information to answer the question, respond with False."
-            " If it does, respond with True.")
-        # logger.info(f"FIRST: {first_prompt}")
-        character_prompt_check = dspy.Predict(CharacterPromptAspect, temperature=0.3)
-        check_response = character_prompt_check(request=first_prompt, cache=False)
-        detail_exists = check_response.detail_exists
-        # logger.info(f"Aspect exists: {detail_exists}")
-        return detail_exists
+def check_character_prompt_for_detail(prompt_text, character_detail):
+    first_prompt = (
+        f"{QUESTIONS[character_detail]}\n\n\"{prompt_text}\"\n\n"
+        f"If the prompt provides an answer to the question, respond with True. Otherwise, respond with False.")
+    # logger.info(f"FIRST: {first_prompt}")
+    character_prompt_check = dspy.Predict(CharacterPromptAspect, temperature=0.0)
+    check_response = character_prompt_check(request=first_prompt, cache=False)
+    detail_exists = check_response.detail_exists
+    logger.info(f"{character_detail} exists: {detail_exists}")
+    return detail_exists
 
 
-def extract_character_trait(prompt_text, aspect_question):
+def extract_character_trait(prompt_text, character_detail):
     prompt = (
-        f"Given the prompt: \"{prompt_text}\" answer the question: \"{aspect_question}\""
-        f" Don't include any guesses, supposition or inference beyond what is provided in the prompt about the {aspect_question}."
+        f"Given the information: \"{prompt_text}\", is there a {character_detail} provided?"
+        f" Don't include any guesses, supposition or inference beyond what is provided in the prompt about the {character_detail}."
         " If the prompt does not provide enough information to answer the question, respond with 'None'."
-        f" If it does, provide a concise answer with as few words as possible giving the {aspect_question} of the character only."
+        f" If it does, provide a concise answer with as few words as possible giving the provided {character_detail} of the character only."
         "Please respond with only the answer, without any additional explanation or context, in as few words as possible.")
     character_prompt = dspy.Predict(CharacterPromptAspect2)
     response = character_prompt(request=prompt, cache=False)
     return_value = ""
     if is_information_a_sentence(response.character_detail):
         # logger.info(f"Full sentence answer detected for aspect {a}, extracting concise information.")
-        concise_answer = extract_most_important_information_from_sentence(response.character_detail, aspect_question)
+        concise_answer = extract_most_important_information_from_sentence(response.character_detail, character_detail)
         return_value = concise_answer
         logger.info(f"Concise aspect: {concise_answer}")
     else:
@@ -79,20 +77,20 @@ def extract_character_trait(prompt_text, aspect_question):
 def parse_character_prompt(prompt_text):
     answers = {}
     for a, q in QUESTIONS.items():
-        detail_exists = check_character_prompt_trait(prompt_text, q)
+        detail_exists = check_character_prompt_for_detail(prompt_text, a)
         if detail_exists:
-            aspect_value = extract_character_trait(prompt_text, q)
+            aspect_value = extract_character_trait(prompt_text, a)
             answers[a] = aspect_value
         else:
             second_prompt = (
-                f"Given the prompt: \"{prompt_text}\" answer the question: \"{q}\""
+                f"Given the information: \"{prompt_text}\", is there a {a} provided?"
                 f"Why does the prompt not provide enough information to answer the question about the {a} of the character?")
             debug_prompt = dspy.Predict("question: str -> answer: str")
             debug_response = debug_prompt(question=second_prompt, cache=False)
             logger.info(f"DEBUG: {a}: {debug_response.answer}")
 
-            double_check = check_character_prompt_trait(prompt_text, q)
+            double_check = check_character_prompt_for_detail(prompt_text, a)
             if double_check:
-                aspect_value = extract_character_trait(prompt_text, q)
+                aspect_value = extract_character_trait(prompt_text, a)
                 answers[a] = aspect_value
     return answers
