@@ -70,7 +70,7 @@ def extract_character_trait(prompt_text, character_detail):
         logger.info(f"Concise aspect: {concise_answer}")
     else:
         return_value = response.character_detail
-        logger.info(f"Aspect: {response.character_detail}")
+        logger.info(f"Existing aspect: {response.character_detail}")
 
     return return_value
 
