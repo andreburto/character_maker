@@ -25,6 +25,10 @@ It's the biggest model my potato computer will run, but the purpose of this is t
 
 ## Update Log
 
+**2026-01-10:** Adhoc promting tests pass regularly.
+Cleaning up, but still in progress.
+Added `web.py` to start on the UI.
+
 **2025-12-28:** Trying to build a chain of thought, but Llama still gets chatty with responses.
 
 **2025-12-22:** Started working on the workflow, so users can start the character creation with a prompt.

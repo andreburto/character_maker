@@ -35,7 +35,8 @@ def extract_most_important_information_from_sentence(prompt_text, character_deta
     prompt = (
         f"Given the information: \"{prompt_text}\", is there a {character_detail} provided?"
         " Provide a concise answer with as few words as possible."
-        " Please respond with only the answer, without any additional explanation or context, in as few words as possible.")
+        " Please respond with only the answer, without any additional explanation or context, in as few words as possible."
+        " Remove all markup, extra lines, punctuation, or quotation marks from the answer.")
     info_extractor = dspy.Predict("text: str -> answer: str", temperature=0.0)
     response = info_extractor(text=prompt, cache=False)
     return response.answer
@@ -49,7 +50,7 @@ def check_character_prompt_for_detail(prompt_text, character_detail):
     character_prompt_check = dspy.Predict(CharacterPromptAspect, temperature=0.0)
     check_response = character_prompt_check(request=first_prompt, cache=False)
     detail_exists = check_response.detail_exists
-    logger.info(f"{character_detail} exists: {detail_exists}")
+    # logger.info(f"{character_detail} exists: {detail_exists}")
     return detail_exists
 
 
@@ -59,7 +60,8 @@ def extract_character_trait(prompt_text, character_detail):
         f" Don't include any guesses, supposition or inference beyond what is provided in the prompt about the {character_detail}."
         " If the prompt does not provide enough information to answer the question, respond with 'None'."
         f" If it does, provide a concise answer with as few words as possible giving the provided {character_detail} of the character only."
-        "Please respond with only the answer, without any additional explanation or context, in as few words as possible.")
+        " Please respond with only the answer, without any additional explanation or context, in as few words as possible."
+        " Remove all markup, extra lines, punctuation, or quotation marks from the answer.")
     character_prompt = dspy.Predict(CharacterPromptAspect2)
     response = character_prompt(request=prompt, cache=False)
     return_value = ""
@@ -67,10 +69,10 @@ def extract_character_trait(prompt_text, character_detail):
         # logger.info(f"Full sentence answer detected for aspect {a}, extracting concise information.")
         concise_answer = extract_most_important_information_from_sentence(response.character_detail, character_detail)
         return_value = concise_answer
-        logger.info(f"Concise aspect: {concise_answer}")
+        # logger.info(f"Concise aspect: {concise_answer}")
     else:
         return_value = response.character_detail
-        logger.info(f"Existing aspect: {response.character_detail}")
+        # logger.info(f"Existing aspect: {response.character_detail}")
 
     return return_value
 
