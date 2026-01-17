@@ -5,7 +5,7 @@ import sys
 
 from urllib.parse import parse_qs
 
-from utils import get_logger, get_database_connection, insert_prompt_into_db
+from utils import close_database_connection, get_logger, get_database_connection, insert_prompt_into_db
 
 DEFAULT_FILE = "index.html"
 STATIC_DIR = "static"
@@ -43,18 +43,24 @@ class web_handler(hs.BaseHTTPRequestHandler):
         self.send_the_response(status_code, file_type, file_contents)
 
     def do_POST(self):
-        logger.info(dir(self.request))
         content_length = int(self.headers.get('Content-Length', 0))
         post_data = parse_qs(self.rfile.read(content_length).decode())
         logger.info(f"Received POST data: {post_data}")
-        self.send_the_response(200, "text/plain", str(post_data).encode())
+        status_code = 200
         if 'text' in post_data:
             db_path = os.path.join(os.path.dirname(__file__), 'test_character_maker.db')
             connection = get_database_connection(db_path)
             prompt_text = post_data['text'][0]
-            insert_prompt_into_db(connection, prompt_text)
+            prompt_id = insert_prompt_into_db(connection, prompt_text)
+            close_database_connection(connection)
             logger.info(f"Inserted prompt into database: {prompt_text}")
-        
+            response_data = {'prompt_id': prompt_id}
+        else:
+            logger.warning("No 'text' field found in POST data.")
+            response_data = {'error': "No 'text' field found in POST data."}
+            status_code = 400
+        self.send_the_response(status_code, "application/json", str(response_data).encode())
+
 
 class web_server(hs.HTTPServer):
     def __init__(self, handler, address="", port=8000):

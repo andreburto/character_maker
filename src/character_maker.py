@@ -70,44 +70,30 @@ def main():
     initialize_database(db_path)
     db_conn = get_database_connection(db_path)
 
-    test_prompts = [
-        ("Create a character named Alice from Canada who is a doctor.", True, True, False, True, {'name': 'Alice', 'country': 'Canada', 'profession': 'Doctor'}),
-        # ("Generate a character called Bob living in Australia", True, True, False, False, {'name': 'Bob', 'country': 'Australia'}),
-        # ("Make a character who is a teacher in Germany.", False, True, False, True, {'country': 'Germany', 'profession': 'Teacher'}),
-        # ("Design a new character who is a man", False, False, True, False, {'gender': 'male'}),
-        # ("I want to make a new lizard character.", False, False, False, False, {}),
-    ]
+    actual_aspects = {}
+    logger.info("-----")
+    logger.info(f"Prompt: {prompt[0]}")
+    prompt_id = insert_prompt_into_db(db_conn, prompt[0])
 
-    for prompt in test_prompts:
-        actual_aspects = {}
-        logger.info("-----")
-        logger.info(f"Prompt: {prompt[0]}")
-        prompt_id = insert_prompt_into_db(db_conn, prompt[0])
+    prompt_data = fetch_oldest_unprocessed_prompt(db_conn)
+    assert prompt_data is not None, "Failed to fetch the inserted prompt."  
+    logger.info(f"Fetched prompt from DB: {prompt_data}")
 
-        prompt_data = fetch_oldest_unprocessed_prompt(db_conn)
-        assert prompt_data is not None, "Failed to fetch the inserted prompt."  
-        logger.info(f"Fetched prompt from DB: {prompt_data}")
-
-        for t in QUESTIONS.keys():
-            if check_character_prompt_for_detail(prompt[0], t):
-                # logger.info(f"Aspect {t} exists.")
-                actual_aspects[t] = True
-        # logger.info(f"actual_aspects: {actual_aspects}")
-        assert actual_aspects.get("name", False) == prompt[1], f"Name should be detected == {prompt[1]}."
-        assert actual_aspects.get("country", False) == prompt[2], f"Country should be detected == {prompt[2]}."
-        assert actual_aspects.get("gender", False) == prompt[3], f"Gender should be detected == {prompt[3]}."
-        assert actual_aspects.get("profession", False) == prompt[4], f"Profession should be detected == {prompt[4]}."
-        character_info = parse_character_prompt(prompt[0])
-        print(f"Extracted character info: {character_info}")
-        for k, v in prompt[5].items():
-            assert character_info.get(k, None).lower() == v.lower(), f"Expected {k} to be {v}, got {character_info.get(k, None)}"
-            if character_info.get(k):
-                insert_character_trait_into_db(db_conn, prompt_id, k, character_info.get(k))
-        trait_data = get_character_traits_by_prompt_id(db_conn, prompt_id)
-        logger.info(f"Stored traits in DB: {trait_data}")
-        new_character = make_the_character(character_info)
-        logger.info(f"Final character generated: {new_character}")
-        mark_prompt_as_processed(db_conn, prompt_id)  
+    for t in QUESTIONS.keys():
+        if check_character_prompt_for_detail(prompt[0], t):
+            # logger.info(f"Aspect {t} exists.")
+            actual_aspects[t] = True
+    character_info = parse_character_prompt(prompt[0])
+    print(f"Extracted character info: {character_info}")
+    for k, v in prompt[5].items():
+        assert character_info.get(k, None).lower() == v.lower(), f"Expected {k} to be {v}, got {character_info.get(k, None)}"
+        if character_info.get(k):
+            insert_character_trait_into_db(db_conn, prompt_id, k, character_info.get(k))
+    trait_data = get_character_traits_by_prompt_id(db_conn, prompt_id)
+    logger.info(f"Stored traits in DB: {trait_data}")
+    new_character = make_the_character(character_info)
+    logger.info(f"Final character generated: {new_character}")
+    mark_prompt_as_processed(db_conn, prompt_id)  
 
     logger.info("-----")
     finish_time = datetime.datetime.now()

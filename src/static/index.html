@@ -2,14 +2,44 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Character Maker</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
-<body onload="showText()">
-    <h1>Character Maker</h1>
-    <p>Describe what you want your character to be like:</p>
-    <form action="/" method="post" enctype="application/x-www-form-urlencoded">
-        <input type="text" name="text">
-        <input type="submit">
-    </form>
+<body>
+    <div class="container">
+        <form action="/" method="post" enctype="application/x-www-form-urlencoded">
+            <input type="text" name="text" id="textInput" value="Describe what you want your character to be like:">
+        </form>
+    </div>
+    <script>
+        window.onload = function() {
+            document.getElementById('textInput').focus();
+            document.getElementById('textInput').select();
+        };
+    </script>
 </body>
 </html>
